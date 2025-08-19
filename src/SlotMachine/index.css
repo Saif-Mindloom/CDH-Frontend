@@ -1,0 +1,408 @@
+/* Slot Machine CSS Animation Styles */
+.slot-machine {
+  margin-bottom: 30px;
+  /* width: 100%; */
+}
+
+.slot-reels {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  /* border-radius: 15px; */
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px;
+  background-color: "#b52354";
+  border-radius: 160px;
+  box-shadow: 0px 3px 24.7px rgba(0, 0, 0, 0.15);
+  /* gap: 5px; */
+}
+
+/* BASE STYLES - Phone (< 768px) - 80px reels for better mobile fit */
+.reel-left {
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-style: solid;
+  /* border-width: 6px 3px 6px 6px; */
+  border-color: #b52354;
+  border-radius: 40px 0px 0px 40px;
+  display: flex;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  box-shadow: 0px 3px 24.7px rgba(0, 0, 0, 0.15);
+  /* margin: 0 2px; */
+}
+
+.reel {
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-style: solid;
+  /* border-width: 6px 3px 6px 3px; */
+  border-color: #b52354;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  box-shadow: 0px 3px 24.7px rgba(0, 0, 0, 0.15);
+  /* margin: 0 2px; */
+}
+
+.reel-right {
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-style: solid;
+  /* border-width: 6px 6px 6px 3px; */
+  border-color: #b52354;
+  border-radius: 0px 40px 40px 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  box-shadow: 0px 3px 24.7px rgba(0, 0, 0, 0.15);
+  /* margin: 0 2px; */
+}
+
+.reel::before,
+.reel-left::before,
+.reel-right::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 15px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.reel::after,
+.reel-left::after,
+.reel-right::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 15px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.reel-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.symbol-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 480px; /* 6 symbols * 80px each for phone */
+  transition: transform 0.1s ease;
+}
+
+.symbol {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.symbol-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  max-width: 80%;
+  max-height: 80%;
+}
+
+/* Spinning animation for all reel types */
+.reel.spinning .symbol-strip,
+.reel-left.spinning .symbol-strip,
+.reel-right.spinning .symbol-strip {
+  animation: spinReelPhone 0.1s linear infinite;
+}
+
+@keyframes spinReelPhone {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-80px); /* Updated for 80px symbols */
+  }
+}
+
+/* Spin button */
+.spin-button {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 18px 50px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4),
+    inset 0 2px 5px rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  border: 3px solid #8b4513;
+  position: relative;
+  overflow: hidden;
+}
+
+.spin-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5),
+    inset 0 2px 5px rgba(255, 255, 255, 0.2);
+}
+
+.spin-button:disabled {
+  background: #666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  border-color: #444;
+}
+
+/* Win animations for all reel types */
+.jackpot,
+.reel-left.jackpot,
+.reel-right.jackpot {
+  animation: jackpot 1s ease-in-out;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
+}
+
+.partial-win,
+.reel-left.partial-win,
+.reel-right.partial-win {
+  animation: partialWin 0.8s ease-in-out;
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.6), 0 0 40px rgba(255, 165, 0, 0.3);
+}
+
+.no-win,
+.reel-left.no-win,
+.reel-right.no-win {
+  animation: noWin 0.5s ease-in-out;
+}
+
+@keyframes jackpot {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 50px rgba(255, 215, 0, 1), 0 0 100px rgba(255, 215, 0, 0.6);
+  }
+}
+
+@keyframes partialWin {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(255, 165, 0, 0.6), 0 0 40px rgba(255, 165, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 165, 0, 0.8), 0 0 60px rgba(255, 165, 0, 0.4);
+  }
+}
+
+@keyframes noWin {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+}
+
+/* TABLET STYLES (768px - 1023px) - 180px reels */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .slot-reels {
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .reel-left {
+    width: 180px;
+    height: 180px;
+    /* border-width: 8px 4px 8px 8px; */
+    border-radius: 90px 0px 0px 90px;
+  }
+
+  .reel {
+    width: 180px;
+    height: 180px;
+    /* border-width: 8px 4px 8px 4px; */
+  }
+
+  .reel-right {
+    width: 180px;
+    height: 180px;
+    /* border-width: 8px 8px 8px 4px; */
+    border-radius: 0px 90px 90px 0px;
+  }
+
+  .reel::before,
+  .reel-left::before,
+  .reel-right::before {
+    height: 22px;
+  }
+
+  .reel::after,
+  .reel-left::after,
+  .reel-right::after {
+    height: 22px;
+  }
+
+  .symbol-strip {
+    height: 1080px; /* 6 symbols * 180px each for tablet */
+  }
+
+  .symbol {
+    height: 180px;
+    font-size: 5rem;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  }
+
+  .symbol-image {
+    width: 120px;
+    height: 120px;
+    max-width: 80%;
+    max-height: 80%;
+  }
+
+  .reel.spinning .symbol-strip,
+  .reel-left.spinning .symbol-strip,
+  .reel-right.spinning .symbol-strip {
+    animation: spinReelTablet 0.1s linear infinite;
+  }
+
+  @keyframes spinReelTablet {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-180px); /* Tablet */
+    }
+  }
+}
+
+/* DESKTOP STYLES (>= 1024px) - 240px reels */
+@media (min-width: 1024px) {
+  .slot-reels {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .reel-left {
+    width: 240px;
+    height: 240px;
+    /* border-width: 10px 16px 10px 10px; */
+    border-radius: 120px 16px 16px 120px;
+  }
+
+  .reel {
+    width: 240px;
+    height: 240px;
+    /* border-width: 10px 5px 10px 0px; */
+    border-radius: 16px 16px 16px 16px;
+  }
+
+  .reel-right {
+    width: 240px;
+    height: 240px;
+    /* border-width: 10px 10px 10px 5px; */
+    border-radius: 16px 120px 120px 16px;
+  }
+
+  .reel::before,
+  .reel-left::before,
+  .reel-right::before {
+    height: 30px;
+  }
+
+  .reel::after,
+  .reel-left::after,
+  .reel-right::after {
+    height: 30px;
+  }
+
+  .symbol-strip {
+    height: 1440px; /* 6 symbols * 240px each for desktop */
+  }
+
+  .symbol {
+    height: 240px;
+    font-size: 7rem;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  }
+
+  .symbol-image {
+    width: 180px;
+    height: 180px;
+    max-width: 80%;
+    max-height: 80%;
+  }
+
+  .reel.spinning .symbol-strip,
+  .reel-left.spinning .symbol-strip,
+  .reel-right.spinning .symbol-strip {
+    animation: spinReelDesktop 0.1s linear infinite;
+  }
+
+  @keyframes spinReelDesktop {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-240px); /* Desktop */
+    }
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 480px) {
+  .slot-machine {
+    min-width: 280px;
+    padding: 0 10px;
+  }
+
+  .slot-reels {
+    padding: 5px;
+    gap: 2px;
+  }
+
+  .reel-left,
+  .reel,
+  .reel-right {
+    margin: 0 1px;
+  }
+}
+
+/* Prevent horizontal scroll on small screens */
+body {
+  overflow-x: hidden;
+}
