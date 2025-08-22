@@ -1,4 +1,6 @@
 import { forwardRef, useState, useImperativeHandle } from "react";
+import { ApiService } from "../services/api";
+import type { User } from "../services/graphql/types";
 
 interface ContentProps {
   title?: string;
@@ -7,13 +9,17 @@ interface ContentProps {
   Label1Placeholder?: string;
   Label2?: string;
   Label2Placeholder?: string;
+  Label3?: string;
+  Label3Placeholder?: string;
   buttonText?: string;
-  onSubmit?: (name: string, email: string) => void;
+  onSubmit?: (user: User) => void;
+  phoneNumber?: string;
 }
 
 export interface FormDetailsRef {
   submitForm: () => void;
 }
+
 export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
   (
     {
@@ -23,21 +29,56 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
       Label1Placeholder = "John Doe",
       Label2 = "Date of Birth",
       Label2Placeholder = "DD/MM/YYYY",
+      Label3 = "Email (Optional)",
+      Label3Placeholder = "john@example.com",
       buttonText = "Proceed",
       onSubmit,
+      phoneNumber,
     },
     ref
   ) => {
     const [name, setName] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    // Convert date format from DD/MM/YYYY to YYYY-MM-DD
+    const convertDateFormat = (dateStr: string): string => {
+      const parts = dateStr.split("/");
+      if (parts.length === 3) {
+        const [day, month, year] = parts;
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+      }
+      return dateStr;
+    };
 
     // Check if form is ready to submit
     const isFormReady =
-      name.trim().length > 0 && dateOfBirth.trim().length === 10;
+      name.trim().length > 0 && dateOfBirth.trim().length === 10 && !loading;
 
-    const handleSubmit = () => {
-      if (isFormReady) {
-        onSubmit?.(name, dateOfBirth);
+    const handleSubmit = async () => {
+      if (!isFormReady || !phoneNumber) return;
+
+      try {
+        setLoading(true);
+        setError("");
+
+        const formattedDate = convertDateFormat(dateOfBirth);
+
+        const userInput = {
+          full_name: name.trim(),
+          phone_number: phoneNumber,
+          dob: formattedDate,
+          email: email.trim() || undefined,
+        };
+
+        const user = await ApiService.registerUser(userInput);
+        onSubmit?.(user);
+      } catch (err) {
+        setError(ApiService.handleError(err));
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -77,9 +118,9 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
             height: "75px",
             position: "absolute",
             top: "-50px",
-            // left: "16px",
           }}
         />
+
         {/* Heading */}
         <div
           style={{
@@ -111,6 +152,24 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
             {subtitle}
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div
+            style={{
+              alignSelf: "stretch",
+              padding: "12px",
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fecaca",
+              borderRadius: "8px",
+              color: "#dc2626",
+              fontSize: "14px",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         {/* Inputs */}
         <div
@@ -168,8 +227,12 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError("");
+                }}
                 placeholder={Label1Placeholder}
+                disabled={loading}
                 style={{
                   border: "none",
                   outline: "none",
@@ -238,9 +301,73 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
                   }
 
                   setDateOfBirth(value);
+                  setError("");
                 }}
                 placeholder={Label2Placeholder}
                 maxLength={10}
+                disabled={loading}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  flex: 1,
+                  fontSize: window.innerWidth <= 768 ? 12 : 16,
+                  color: "#09090b",
+                  backgroundColor: "#fff",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Email Input */}
+          <div
+            style={{
+              alignSelf: "stretch",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              justifyContent: "flex-start",
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <div
+                style={{
+                  lineHeight: window.innerWidth <= 768 ? "20px" : "24px",
+                  fontWeight: 600,
+                  fontSize: window.innerWidth <= 768 ? "12px" : "16px",
+                }}
+              >
+                {Label3}
+              </div>
+            </div>
+            <div
+              style={{
+                alignSelf: "stretch",
+                borderRadius: window.innerWidth <= 768 ? 6 : 8,
+                backgroundColor: "#fff",
+                border: "1px solid #e4e4e7",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                padding: window.innerWidth <= 768 ? 16 : 20,
+                color: "#71717a",
+              }}
+            >
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError("");
+                }}
+                placeholder={Label3Placeholder}
+                disabled={loading}
                 style={{
                   border: "none",
                   outline: "none",
@@ -271,7 +398,7 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
             }}
             onClick={handleSubmit}
           >
-            {buttonText}
+            {loading ? "Creating Account..." : buttonText}
           </div>
         </div>
       </div>

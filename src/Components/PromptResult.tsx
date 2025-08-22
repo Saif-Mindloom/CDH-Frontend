@@ -1,6 +1,10 @@
+import { useState } from "react";
+import { ApiService } from "../services/api";
+
 interface ContentProps {
   result: "won" | "lost" | "halfoff";
   code?: string;
+  userId?: string;
   onComplete?: () => void;
 }
 
@@ -14,7 +18,7 @@ const getResultContent = (
       return {
         title: "Congratulations!",
         subtitle:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt!",
+          "You've won a free meal! Use the code below to redeem your prize at any Cafe Delhi Heights location.",
         promptText: "REDEEM CODE:",
         buttonText: "Claim Reward",
         response: code || "WINNER100",
@@ -27,7 +31,7 @@ const getResultContent = (
       return {
         title: "Congratulations! 50% off",
         subtitle:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt!",
+          "You've earned a 50% discount on your next order! Use the code below to save on your favorite meal.",
         promptText: "REDEEM CODE:",
         buttonText: "Claim Discount",
         response: code || "HALF50",
@@ -40,7 +44,7 @@ const getResultContent = (
       return {
         title: "Better Luck Next Time!",
         subtitle:
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt!",
+          "Don't worry, you still get a special consolation prize! Show this screen to our staff for a surprise discount.",
         promptText: "Special offer just for playing:",
         buttonText: "Thank You!",
         response:
@@ -64,8 +68,49 @@ const getResultContent = (
   }
 };
 
-export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
+export const PromptResult = ({
+  result,
+  code,
+  userId,
+  onComplete,
+}: ContentProps) => {
+  const [loading, setLoading] = useState(false);
+  const [redeemed, setRedeemed] = useState(false);
+  const [error, setError] = useState("");
+
   const content = getResultContent(result, code);
+
+  const handleRedeemCode = async () => {
+    if (!code || !userId || redeemed) return;
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await ApiService.redeemPromoCode(code, userId);
+
+      if (response.success) {
+        setRedeemed(true);
+        setTimeout(() => {
+          onComplete?.();
+        }, 2000);
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError(ApiService.handleError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (content.showCode && code && userId && !redeemed) {
+      handleRedeemCode();
+    } else {
+      onComplete?.();
+    }
+  };
 
   return (
     <div
@@ -98,9 +143,9 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
           height: "75px",
           position: "absolute",
           top: "-50px",
-          // left: "16px",
         }}
       />
+
       {/* Heading */}
       <div
         style={{
@@ -133,6 +178,42 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div
+          style={{
+            alignSelf: "stretch",
+            padding: "12px",
+            backgroundColor: "#fef2f2",
+            border: "1px solid #fecaca",
+            borderRadius: "8px",
+            color: "#dc2626",
+            fontSize: "14px",
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      {/* Success Message */}
+      {redeemed && (
+        <div
+          style={{
+            alignSelf: "stretch",
+            padding: "12px",
+            backgroundColor: "#f0fdf4",
+            border: "1px solid #bbf7d0",
+            borderRadius: "8px",
+            color: "#15803d",
+            fontSize: "14px",
+            textAlign: "center",
+          }}
+        >
+          Code redeemed successfully! Show this to our staff.
+        </div>
+      )}
+
       {/* Content */}
       <div
         style={{
@@ -145,7 +226,7 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
           fontSize: window.innerWidth <= 768 ? 14 : 16,
         }}
       >
-        {result != "lost" && (
+        {result !== "lost" && (
           <div
             style={{
               gap: "10px",
@@ -170,10 +251,10 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
                 style={{
                   width: "100%",
                   height: "100%",
-                  //   backgroundColor: "red",
                 }}
               />
             </div>
+
             {/* Prompt */}
             <div
               style={{
@@ -206,6 +287,7 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
                 letterSpacing: content.showCode ? "2px" : "normal",
                 fontFamily: content.showCode ? "monospace" : "Satoshi",
                 textTransform: "uppercase",
+                opacity: redeemed ? 0.6 : 1,
               }}
             >
               {content.response}
@@ -218,29 +300,39 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
           style={{
             alignSelf: "stretch",
             borderRadius: window.innerWidth <= 768 ? 6 : 8,
-            backgroundColor: "#fdcf3e",
+            backgroundColor: redeemed ? "#22c55e" : "#fdcf3e",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: window.innerWidth <= 768 ? "16px 12px" : "20px 16px",
             color: "#B52354",
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
             fontWeight: 600,
             marginTop: window.innerWidth <= 768 ? 6 : 8,
             transition: "all 0.3s ease",
             fontSize: window.innerWidth <= 768 ? "12px" : "16px",
+            opacity: loading ? 0.6 : 1,
           }}
-          onClick={onComplete}
+          onClick={handleButtonClick}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
+            if (!loading) {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 20px rgba(0, 0, 0, 0.15)";
+            }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "none";
+            if (!loading) {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
+            }
           }}
         >
-          {content.buttonText}
+          {loading
+            ? "Processing..."
+            : redeemed
+            ? "Redeemed ✓"
+            : content.buttonText}
         </div>
       </div>
     </div>

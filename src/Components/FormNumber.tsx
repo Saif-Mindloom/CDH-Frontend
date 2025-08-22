@@ -1,4 +1,5 @@
 import { useState, useRef, forwardRef, useImperativeHandle } from "react";
+import { ApiService } from "../services/api";
 
 interface ContentProps {
   title?: string;
@@ -9,7 +10,8 @@ interface ContentProps {
   Label2Placeholder?: string;
   buttonText?: string;
   resendText?: string;
-  onSubmit?: (phone: string, otp: string) => void;
+  onSubmit?: (phone: string, otp: string, user?: any) => void;
+  onSendOtp?: (phone: string) => void;
 }
 
 export interface FormNumberRef {
@@ -28,24 +30,57 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
       buttonText = "Sign in",
       resendText = "Resend OTP",
       onSubmit,
+      onSendOtp,
     },
     ref
   ) => {
     const [phone, setPhone] = useState("");
     const [otp, setOtp] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [otpSent, setOtpSent] = useState(false);
     const otpInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-focus OTP input when phone number reaches 10 digits
-    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhoneChange = async (
+      e: React.ChangeEvent<HTMLInputElement>
+    ) => {
       const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
       if (value.length <= 10) {
         setPhone(value);
-        if (value.length === 10) {
-          // Auto-focus OTP input after phone is complete
+        setError("");
+
+        if (value.length === 10 && !otpSent) {
+          // Auto-send OTP when phone number is complete
+          await sendOtp(value);
+        }
+      }
+    };
+
+    // Send OTP
+    const sendOtp = async (phoneNumber: string) => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await ApiService.sendOtp(phoneNumber);
+
+        if (response.success) {
+          setOtpSent(true);
+          onSendOtp?.(phoneNumber);
+          // Auto-focus OTP input after OTP is sent
           setTimeout(() => {
             otpInputRef.current?.focus();
           }, 100);
+        } else {
+          setError(response.message);
+          console.log(response, "number");
+          console.log(response);
         }
+      } catch (err) {
+        setError(ApiService.handleError(err));
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -54,16 +89,52 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
       const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
       if (value.length <= 6) {
         setOtp(value);
+        setError("");
       }
     };
 
     // Check if form is ready to submit
-    const isFormReady = phone.length === 10 && otp.length === 6;
+    const isFormReady = phone.length === 10 && otp.length === 6 && !loading;
 
     // Handle form submission
-    const handleSubmit = () => {
-      if (isFormReady) {
-        onSubmit?.(phone, otp);
+    const handleSubmit = async () => {
+      if (!isFormReady) return;
+
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await ApiService.verifyOtp(phone, otp);
+        console.log(response, "otp response");
+
+        if (response.success && !response.user) {
+          console.log(
+            response,
+            "otp is verified but the user is not set go for registrations"
+          );
+          console.log("otp is verifed 1");
+          onSubmit?.(phone, otp, response.user);
+        } else if (response.success && response.user) {
+          console.log(response, "otp is verified and the user is set");
+          console.log("otp is verifed 2");
+          onSubmit?.(phone, otp, response.user);
+        } else {
+          setError(response.message);
+          console.log(response, "otp is error");
+        }
+      } catch (err) {
+        setError(ApiService.handleError(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Handle resend OTP
+    const handleResendOtp = async () => {
+      if (phone.length === 10) {
+        setOtp("");
+        setOtpSent(false);
+        await sendOtp(phone);
       }
     };
 
@@ -102,9 +173,9 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
             height: "78px",
             position: "absolute",
             top: "-40px",
-            // left: "16px",
           }}
         />
+
         {/* Heading */}
         <div
           style={{
@@ -133,13 +204,30 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
               lineHeight: window.innerWidth <= 768 ? "20px" : "24px",
               fontWeight: 500,
               fontFamily: "Satoshi",
-
               color: "#71717a",
             }}
           >
             {subtitle}
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div
+            style={{
+              alignSelf: "stretch",
+              padding: "12px",
+              backgroundColor: "#fef2f2",
+              border: "1px solid #fecaca",
+              borderRadius: "8px",
+              color: "#dc2626",
+              fontSize: "14px",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         {/* Inputs */}
         <div
@@ -173,8 +261,6 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
             >
               <div
                 style={{
-                  //   lineHeight: window.innerWidth <= 768 ? "20px" : "24px",
-                  //   fontWeight: 600,
                   fontSize: window.innerWidth <= 768 ? "12px" : "16px",
                   fontFamily: "Satoshi",
                   fontWeight: 700,
@@ -209,6 +295,7 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
                   onChange={handlePhoneChange}
                   placeholder={Label1Placeholder}
                   maxLength={10}
+                  disabled={loading}
                   style={{
                     border: "none",
                     width: "100%",
@@ -243,8 +330,6 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
             >
               <div
                 style={{
-                  //   lineHeight: window.innerWidth <= 768 ? "20px" : "24px",
-                  //   fontWeight: 600,
                   fontSize: window.innerWidth <= 768 ? "12px" : "16px",
                   fontFamily: "Satoshi",
                   fontWeight: 700,
@@ -272,6 +357,7 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
                 onChange={handleOtpChange}
                 placeholder={Label2Placeholder}
                 maxLength={6}
+                disabled={loading || !otpSent}
                 style={{
                   border: "none",
                   outline: "none",
@@ -296,7 +382,6 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
               padding: window.innerWidth <= 768 ? "16px 12px" : "20px 16px",
               color: isFormReady ? "#B52354" : "#71717a",
               cursor: isFormReady ? "pointer" : "not-allowed",
-              //   fontWeight: 600,
               fontFamily: "Satoshi",
               fontWeight: 700,
               opacity: isFormReady ? 1 : 0.6,
@@ -304,28 +389,31 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
             }}
             onClick={handleSubmit}
           >
-            {buttonText}
+            {loading ? "Loading..." : buttonText}
           </div>
         </div>
 
         {/* Bottom */}
-        <div
-          style={{
-            alignSelf: "stretch",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            fontSize: window.innerWidth <= 768 ? 12 : 14,
-            color: "#71717a",
-            cursor: "pointer",
-            fontFamily: "Satoshi",
-            fontWeight: 500,
-          }}
-        >
-          {resendText}
-        </div>
+        {otpSent && (
+          <div
+            style={{
+              alignSelf: "stretch",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              fontSize: window.innerWidth <= 768 ? 12 : 14,
+              color: "#71717a",
+              cursor: "pointer",
+              fontFamily: "Satoshi",
+              fontWeight: 500,
+            }}
+            onClick={handleResendOtp}
+          >
+            {resendText}
+          </div>
+        )}
       </div>
     );
   }

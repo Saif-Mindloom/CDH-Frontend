@@ -3,44 +3,148 @@ import SlotMachine, { type SlotMachineRef } from "../SlotMachine";
 import { FormNumber, type FormNumberRef } from "../Components/FormNumber";
 import FormDetails, { type FormDetailsRef } from "../Components/FormDetails";
 import PromptResult from "../Components/PromptResult";
+import { ApiService } from "../services/api";
+import { GameResult } from "../services/graphql/types";
+import type { User } from "../services/graphql/types";
 
 const LandingPage: React.FC = () => {
   const slotMachineRef = useRef<SlotMachineRef>(null);
   const formRef = useRef<FormNumberRef>(null);
   const formDetailsRef = useRef<FormDetailsRef>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userToken, setUserToken] = useState<string | null>(null);
+  const [currentPhoneNumber, setCurrentPhoneNumber] = useState<string>("");
   const [isLoggedin, setIsLoggedin] = useState(false);
-  const [loginPopupVisible, setLoginPopupVisible] = useState(Boolean);
-  const [isRegisteredUser, setIsRegisteredUser] = useState(Boolean);
+  const [loginPopupVisible, setLoginPopupVisible] = useState(false);
+  const [isRegisteredUser, setIsRegisteredUser] = useState(false);
   const [userName, setUserName] = useState("");
 
+  const checkUserPlayStatus = async (userId: string) => {
+    try {
+      setCheckingPlayStatus(true);
+      const playStatus = await ApiService.checkPlayStatus(userId);
+      setCanPlay(playStatus.can_play);
+      setPlayMessage(playStatus.message);
+    } catch (error) {
+      console.error("Error checking play status:", error);
+      setPlayMessage("Unable to check play status. Please try again.");
+    } finally {
+      setCheckingPlayStatus(false);
+    }
+  };
+
   const handleRegisterSpin = () => {
-    if (slotMachineRef.current) {
+    if (slotMachineRef.current && canPlay) {
       slotMachineRef.current.spin();
     }
   };
 
-  const handleFormSubmission = (phone: string, otp: string) => {
-    setIsLoggedin(true);
-    setLoginPopupVisible(false);
-    setIsRegisteredUser(false);
+  const handleOtpSent = (phone: string) => {
+    setCurrentPhoneNumber(phone);
   };
 
-  const handleFormDetailsSubmission = (name: string, dob: string) => {
+  const handleFormSubmission = async (
+    phone: string,
+    otp: string,
+    user?: User
+  ) => {
+    if (user) {
+      setCurrentUser(user);
+      setUserName(user.full_name);
+      setIsLoggedin(true);
+      setLoginPopupVisible(false);
+      setIsRegisteredUser(true);
+
+      // Check if user can play today
+      await checkUserPlayStatus(user.id);
+
+      // Check if user already has all required details
+      if (user.full_name && user.dob && user.phone_number) {
+        setIsRegisteredUser(true);
+      } else {
+        setIsRegisteredUser(false);
+      }
+    } else {
+      // User needs to register (new user)
+      setCurrentPhoneNumber(phone);
+      setIsLoggedin(true);
+      setLoginPopupVisible(false);
+      setIsRegisteredUser(false);
+    }
+  };
+
+  const handleFormDetailsSubmission = async (user: User) => {
+    setCurrentUser(user);
+    setUserName(user.full_name);
     setIsLoggedin(true);
-    setUserName(name);
     setIsRegisteredUser(true);
+
+    // Check if user can play today
+    await checkUserPlayStatus(user.id);
   };
 
   const [spinResult, setSpinResult] = useState<"won" | "lost" | "halfoff">(
     "lost"
   );
   const [spinCompleted, setSpinCompleted] = useState(false);
-  const [spinButtonDisable, setSpinButtonDisable] = useState(false);
+  const [currentPromoCode, setCurrentPromoCode] = useState<
+    string | undefined
+  >();
+  const [canPlay, setCanPlay] = useState(true);
+  const [playMessage, setPlayMessage] = useState("");
+  const [checkingPlayStatus, setCheckingPlayStatus] = useState(false);
 
-  const handleSpinComplete = (result: "won" | "lost" | "halfoff") => {
+  const handleSpinComplete = async (result: "won" | "lost" | "halfoff") => {
     console.log("Spin completed with result:", result);
-    setSpinResult(result);
-    setSpinCompleted(true);
+
+    if (currentUser) {
+      try {
+        // Map slot machine result to backend enum
+        let gameResult: GameResult;
+        switch (result) {
+          case "won":
+            gameResult = GameResult.WIN;
+            break;
+          case "halfoff":
+            gameResult = GameResult.HALFOFF;
+            break;
+          case "lost":
+          default:
+            gameResult = GameResult.LOSE;
+            break;
+        }
+
+        // Save game result to backend
+        const gameResponse = await ApiService.saveGameResult(
+          currentUser.id,
+          gameResult
+        );
+
+        if (gameResponse.success) {
+          setSpinResult(result);
+          setSpinCompleted(true);
+
+          // Store promo code for display if won
+          if (gameResponse.promo_code) {
+            setCurrentPromoCode(gameResponse.promo_code);
+          }
+        } else {
+          console.error("Failed to save game result:", gameResponse.message);
+          // Still show the result to user even if saving fails
+          setSpinResult(result);
+          setSpinCompleted(true);
+        }
+      } catch (error) {
+        console.error("Error saving game result:", error);
+        // Still show the result to user even if saving fails
+        setSpinResult(result);
+        setSpinCompleted(true);
+      }
+    } else {
+      // Fallback if no user (shouldn't happen)
+      setSpinResult(result);
+      setSpinCompleted(true);
+    }
   };
 
   return (
@@ -178,12 +282,62 @@ const LandingPage: React.FC = () => {
         >
           #AteLakhJuicyAffairs
         </p>
+
+        {/* Play status message */}
+        {isLoggedin && playMessage && (
+          <p
+            style={{
+              color: canPlay ? "#22c55e" : "#ef4444",
+              textAlign: "center",
+              fontFamily: "Inter",
+              fontSize: "14px",
+              fontStyle: "normal",
+              fontWeight: 500,
+              lineHeight: "normal",
+              letterSpacing: "-0.64px",
+              marginTop: "10px",
+              marginBottom: "10px",
+              padding: "8px 16px",
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+              borderRadius: "8px",
+              maxWidth: "300px",
+              margin: "10px auto",
+            }}
+          >
+            {playMessage}
+          </p>
+        )}
+
+        {/* Loading indicator for play status check */}
+        {checkingPlayStatus && (
+          <p
+            style={{
+              color: "#FFF",
+              textAlign: "center",
+              fontFamily: "Inter",
+              fontSize: "14px",
+              fontStyle: "normal",
+              fontWeight: 400,
+              lineHeight: "normal",
+              letterSpacing: "-0.64px",
+              marginTop: "10px",
+              marginBottom: "10px",
+            }}
+          >
+            Checking play status...
+          </p>
+        )}
+
         {/* spin button */}
         <button
           onClick={() => {
-            isLoggedin ? handleRegisterSpin() : setLoginPopupVisible(true);
+            if (!isLoggedin) {
+              setLoginPopupVisible(true);
+            } else if (canPlay && !checkingPlayStatus) {
+              handleRegisterSpin();
+            }
           }}
-          // disabled={spinButtonDisable}
+          disabled={isLoggedin && (!canPlay || checkingPlayStatus)}
           style={{
             color: "#B52354",
             textAlign: "center",
@@ -195,11 +349,28 @@ const LandingPage: React.FC = () => {
             letterSpacing: "-0.64px",
             borderRadius: "12px",
             border: "3px solid #FFC306",
-            background: "#FDCF3E",
-            boxShadow: "0 4px 1.1px 0 #9D0F3F",
+            background:
+              isLoggedin && (!canPlay || checkingPlayStatus)
+                ? "#888"
+                : "#FDCF3E",
+            boxShadow:
+              isLoggedin && (!canPlay || checkingPlayStatus)
+                ? "0 4px 1.1px 0 #555"
+                : "0 4px 1.1px 0 #9D0F3F",
+            opacity: isLoggedin && (!canPlay || checkingPlayStatus) ? 0.6 : 1,
+            cursor:
+              isLoggedin && (!canPlay || checkingPlayStatus)
+                ? "not-allowed"
+                : "pointer",
           }}
         >
-          {isLoggedin ? "Spin Now" : "Register for a Free Spin"}
+          {!isLoggedin
+            ? "Register for a Free Spin"
+            : checkingPlayStatus
+            ? "Checking..."
+            : canPlay
+            ? "Spin Now"
+            : "Already Played Today"}
         </button>
       </div>
 
@@ -215,7 +386,11 @@ const LandingPage: React.FC = () => {
             display: "flex",
           }}
         >
-          <FormNumber ref={formRef} onSubmit={handleFormSubmission} />
+          <FormNumber
+            ref={formRef}
+            onSubmit={handleFormSubmission}
+            onSendOtp={handleOtpSent}
+          />
         </div>
       )}
       {isLoggedin && !isRegisteredUser && (
@@ -233,6 +408,7 @@ const LandingPage: React.FC = () => {
           <FormDetails
             ref={formDetailsRef}
             onSubmit={handleFormDetailsSubmission}
+            phoneNumber={currentPhoneNumber}
           />
         </div>
       )}
@@ -249,12 +425,13 @@ const LandingPage: React.FC = () => {
           }}
         >
           <PromptResult
-            result={"won"}
-            code={spinResult !== "lost" ? "Winner100" : undefined}
+            result={spinResult}
+            code={currentPromoCode}
+            userId={currentUser?.id}
             onComplete={() => {
               setSpinCompleted(false);
               setSpinResult("lost");
-              setSpinButtonDisable(true);
+              setCurrentPromoCode(undefined);
             }}
           />
         </div>
