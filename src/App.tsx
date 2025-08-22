@@ -1,30 +1,27 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { ApolloProvider } from "@apollo/client";
 import "./App.css";
 import LandingPage from "./LandingPage";
+import { apolloClient } from "./services/apollo";
+import UserProvider from "./contexts/UserContext";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
-    <div
-      style={{
-        // minHeight: "100vh",
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        position: "relative",
-        // height: "100vh",
-        height: "100%",
-        // flex: 1,
-        // overflow: "hidden",
-        // backgroundColor: "red",
-      }}
-    >
-      <LandingPage />
-    </div>
+    <ApolloProvider client={apolloClient}>
+      <UserProvider>
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative",
+            height: "100%",
+          }}
+        >
+          <LandingPage />
+        </div>
+      </UserProvider>
+    </ApolloProvider>
   );
 }
 
