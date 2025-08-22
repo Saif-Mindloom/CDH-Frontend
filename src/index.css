@@ -1,5 +1,53 @@
+/* Font Face Declarations */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter_18pt-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter_18pt-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter_18pt-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter_18pt-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi_Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: bold;
+  font-display: block;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi_Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Inter", "Satoshi", system-ui, Avenir, Helvetica, Arial,
+    sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -10,7 +58,17 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  display: flex;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Disable bounce effect */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Additional reset for bounce effect */
+* {
+  overscroll-behavior: none;
 }
 
 a {
@@ -24,10 +82,29 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  padding: 0;
   min-width: 320px;
-  /* min-height: 100vh; - Removed from base styles */
+  /* min-height: 100vh; */
+  /* height: 100vh; */
+
+  /* Disable bounce/elastic scrolling */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html {
+  /* Disable bounce effect on iOS Safari */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+  /* width: 100%; */
 }
 
 h1 {
@@ -55,11 +132,11 @@ button:focus-visible {
 }
 
 /* Apply min-height: 100vh only on tablet and desktop */
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
   body {
     min-height: 100vh;
   }
-}
+} */
 
 @media (prefers-color-scheme: light) {
   :root {

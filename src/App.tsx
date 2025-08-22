@@ -8,7 +8,21 @@ function App() {
   const [count, setCount] = useState(0);
 
   return (
-    <div style={{}}>
+    <div
+      style={{
+        // minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "relative",
+        // height: "100vh",
+        height: "100%",
+        // flex: 1,
+        // overflow: "hidden",
+        // backgroundColor: "red",
+      }}
+    >
       <LandingPage />
     </div>
   );
