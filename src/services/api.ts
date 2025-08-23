@@ -2,26 +2,26 @@ import { apolloClient } from "./apollo";
 import {
   REGISTER_USER,
   SEND_OTP,
-  VERIFY_OTP,
   SPIN_SLOT_MACHINE,
+  VERIFY_OTP,
 } from "./graphql/mutations";
 import {
+  CHECK_PLAY_STATUS,
+  GET_STATS,
   GET_USER,
   GET_USER_PROMO_CODES,
-  GET_STATS,
-  CHECK_PLAY_STATUS,
 } from "./graphql/queries";
 import type {
+  CheckPlayStatusResponse,
+  OtpResponse,
   RegisterUserInput,
   SendOtpInput,
-  VerifyOtpInput,
-  User,
-  OtpResponse,
-  VerifyOtpResponse,
-  UserPromoCode,
-  Stats,
-  CheckPlayStatusResponse,
   SpinSlotMachineResponse,
+  Stats,
+  User,
+  UserPromoCode,
+  VerifyOtpInput,
+  VerifyOtpResponse,
 } from "./graphql/types";
 
 export class ApiService {
@@ -108,16 +108,16 @@ export class ApiService {
   }
 
   // Utility method to handle errors
-  private static handleError(error: unknown): string {
-    const apolloError = error as any;
-    if (apolloError.graphQLErrors && apolloError.graphQLErrors.length > 0) {
-      return apolloError.graphQLErrors[0].message;
-    } else if (apolloError.networkError) {
-      return "Network error occurred";
-    } else {
-      return apolloError.message || "An unknown error occurred";
-    }
-  }
+  // private static handleError(error: unknown): string {
+  //   const apolloError = error as any;
+  //   if (apolloError.graphQLErrors && apolloError.graphQLErrors.length > 0) {
+  //     return apolloError.graphQLErrors[0].message;
+  //   } else if (apolloError.networkError) {
+  //     return "Network error occurred";
+  //   } else {
+  //     return apolloError.message || "An unknown error occurred";
+  //   }
+  // }
 }
 
 export default ApiService;
