@@ -4,7 +4,6 @@ import { FormNumber, type FormNumberRef } from "../Components/FormNumber";
 import FormDetails, { type FormDetailsRef } from "../Components/FormDetails";
 import PromptResult from "../Components/PromptResult";
 import { ApiService } from "../services/api";
-import { GameResult } from "../services/graphql/types";
 import type { User } from "../services/graphql/types";
 
 const LandingPage: React.FC = () => {
@@ -33,9 +32,60 @@ const LandingPage: React.FC = () => {
     }
   };
 
-  const handleRegisterSpin = () => {
-    if (slotMachineRef.current && canPlay) {
-      slotMachineRef.current.spin();
+  const handleRegisterSpin = async () => {
+    if (!currentUser) {
+      console.error("No user found for spinning");
+      return;
+    }
+
+    if (!canPlay) {
+      console.log("User cannot play today");
+      return;
+    }
+
+    try {
+      // Call backend to spin slot machine and get result
+      const spinResponse = await ApiService.spinSlotMachine(currentUser.id);
+
+      if (spinResponse.success) {
+        // Convert backend result to frontend format
+        let frontendResult: "won" | "lost" | "halfoff";
+        switch (spinResponse.result) {
+          case "WIN":
+            frontendResult = "won";
+            break;
+          case "HALFOFF":
+            frontendResult = "halfoff";
+            break;
+          case "LOSE":
+          default:
+            frontendResult = "lost";
+            break;
+        }
+        slotMachineRef.current?.spin(frontendResult);
+        // Update state with the result
+        setSpinResult(frontendResult);
+
+        // Store promo code if received
+        if (spinResponse.promo_code) {
+          setCurrentPromoCode(spinResponse.promo_code);
+        }
+
+        // Start the slot machine animation and pass the predetermined result
+        if (slotMachineRef.current) {
+          slotMachineRef.current.spin(frontendResult);
+        }
+
+        // Refresh play status after spinning
+        await checkUserPlayStatus(currentUser.id);
+      } else {
+        console.error("Spin failed:", spinResponse.message);
+        // Show error message to user
+        setPlayMessage(spinResponse.message);
+      }
+    } catch (error) {
+      console.error("Error spinning slot machine:", error);
+      setPlayMessage("Failed to spin. Please try again.");
     }
   };
 
@@ -95,56 +145,7 @@ const LandingPage: React.FC = () => {
   const [checkingPlayStatus, setCheckingPlayStatus] = useState(false);
 
   const handleSpinComplete = async (result: "won" | "lost" | "halfoff") => {
-    console.log("Spin completed with result:", result);
-
-    if (currentUser) {
-      try {
-        // Map slot machine result to backend enum
-        let gameResult: GameResult;
-        switch (result) {
-          case "won":
-            gameResult = GameResult.WIN;
-            break;
-          case "halfoff":
-            gameResult = GameResult.HALFOFF;
-            break;
-          case "lost":
-          default:
-            gameResult = GameResult.LOSE;
-            break;
-        }
-
-        // Save game result to backend
-        const gameResponse = await ApiService.saveGameResult(
-          currentUser.id,
-          gameResult
-        );
-
-        if (gameResponse.success) {
-          setSpinResult(result);
-          setSpinCompleted(true);
-
-          // Store promo code for display if won
-          if (gameResponse.promo_code) {
-            setCurrentPromoCode(gameResponse.promo_code);
-          }
-        } else {
-          console.error("Failed to save game result:", gameResponse.message);
-          // Still show the result to user even if saving fails
-          setSpinResult(result);
-          setSpinCompleted(true);
-        }
-      } catch (error) {
-        console.error("Error saving game result:", error);
-        // Still show the result to user even if saving fails
-        setSpinResult(result);
-        setSpinCompleted(true);
-      }
-    } else {
-      // Fallback if no user (shouldn't happen)
-      setSpinResult(result);
-      setSpinCompleted(true);
-    }
+    setSpinCompleted(true);
   };
 
   return (
@@ -284,7 +285,7 @@ const LandingPage: React.FC = () => {
         </p>
 
         {/* Play status message */}
-        {isLoggedin && playMessage && (
+        {/* {isLoggedin && playMessage && !canPlay && (
           <p
             style={{
               color: canPlay ? "#22c55e" : "#ef4444",
@@ -306,7 +307,7 @@ const LandingPage: React.FC = () => {
           >
             {playMessage}
           </p>
-        )}
+        )} */}
 
         {/* Loading indicator for play status check */}
         {checkingPlayStatus && (

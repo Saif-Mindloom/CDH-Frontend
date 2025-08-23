@@ -121,3 +121,10 @@ export interface CheckPlayStatusResponse {
   message: string;
   last_played?: string;
 }
+
+export interface SpinSlotMachineResponse {
+  result: GameResult;
+  success: boolean;
+  message: string;
+  promo_code?: string;
+}

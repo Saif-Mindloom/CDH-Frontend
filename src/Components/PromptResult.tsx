@@ -133,6 +133,7 @@ export const PromptResult = ({
         border: "2px solid #e4e4e7",
         boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
         zIndex: 2,
+        position: "relative",
       }}
     >
       <img

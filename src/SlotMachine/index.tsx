@@ -9,7 +9,7 @@ import "./index.css"; // This imports your CSS file
 
 // Update the interface to include the callback
 export interface SlotMachineRef {
-  spin: () => void;
+  spin: (predeterminedResult?: "won" | "lost" | "halfoff") => void;
   isSpinning: boolean;
 }
 
@@ -27,7 +27,7 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
       "src/assets/FoodImages/CDH-Drink.webp",
       "src/assets/FoodImages/CDH-Meal.webp",
       "src/assets/FoodImages/CDH-pasta.webp",
-      "src/assets/FoodImages/CDH-Burger.webp",
+      "src/assets/FoodImages/CDH-pasta.webp",
     ];
     const [isSpinning, setIsSpinning] = useState(false);
 
@@ -77,13 +77,12 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
     };
 
     // Update the snapToSymbol function with responsive height
-    const snapToSymbol = (reelIndex: number) => {
+    const snapToSymbol = (reelIndex: number, symbolIndex: number) => {
       const symbolStrip = symbolStripsRef.current[reelIndex].current;
       if (!symbolStrip) return;
 
       const symbolHeight = getSymbolHeight();
-      const finalSymbolIndex = Math.floor(Math.random() * 6);
-      const finalPosition = finalSymbolIndex * symbolHeight;
+      const finalPosition = symbolIndex * symbolHeight;
 
       symbolStrip.style.transition = "transform 0.5s ease-out";
       symbolStrip.style.transform = `translateY(-${finalPosition}px)`;
@@ -108,51 +107,50 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
       }
     };
 
-    const triggerResultAnimation = () => {
-      const random = Math.random();
+    const triggerResultAnimation = (result?: "won" | "lost" | "halfoff") => {
+      // Use predetermined result if provided, otherwise use random
+      const animationType = result;
 
-      if (random < 0.15) {
+      if (animationType === "won") {
         // Jackpot animation
         reelsRef.current.forEach((reelRef) => {
           reelRef.current?.classList.add("jackpot");
         });
-        setTimeout(() => {
-          reelsRef.current.forEach((reelRef) => {
-            reelRef.current?.classList.remove("jackpot");
-          });
-        }, 1000);
-      } else if (random < 0.35) {
+        // setTimeout(() => {
+        reelsRef.current.forEach((reelRef) => {
+          reelRef.current?.classList.remove("jackpot");
+        });
+        // }, 1000);
+      } else if (animationType === "halfoff") {
         // Partial win animation
         reelsRef.current.forEach((reelRef) => {
           reelRef.current?.classList.add("partial-win");
         });
-        setTimeout(() => {
-          reelsRef.current.forEach((reelRef) => {
-            reelRef.current?.classList.remove("partial-win");
-          });
-        }, 800);
+        // setTimeout(() => {
+        reelsRef.current.forEach((reelRef) => {
+          reelRef.current?.classList.remove("partial-win");
+        });
+        // }, 800);
       } else {
         // No win animation
         reelsRef.current.forEach((reelRef) => {
           reelRef.current?.classList.add("no-win");
         });
-        setTimeout(() => {
-          reelsRef.current.forEach((reelRef) => {
-            reelRef.current?.classList.remove("no-win");
-          });
-        }, 500);
+        // setTimeout(() => {
+        reelsRef.current.forEach((reelRef) => {
+          reelRef.current?.classList.remove("no-win");
+        });
+        // }, 500);
       }
     };
 
     // Update the spin function to include the callback
-    const spin = async () => {
+    const spin = async (predeterminedResult?: "won" | "lost" | "halfoff") => {
       setIsSpinning(true);
 
-      // Clear any existing intervals
       spinIntervalsRef.current.forEach((interval) => clearInterval(interval));
       spinIntervalsRef.current = [];
 
-      // Start spinning reels with different speeds
       reelsRef.current.forEach((reelRef, index) => {
         const reel = reelRef.current;
         const symbolStrip = symbolStripsRef.current[index].current;
@@ -162,40 +160,71 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
         reel.classList.add("spinning");
 
         let position = 0;
-        const speed = 30 + index * 6;
+        const speed = 30 - index * 6;
 
         const interval = setInterval(() => {
           position += speed;
-          symbolStrip.style.transform = `translateY(-${position}px)`;
+          symbolStrip.style.transform = `translateY(${position}px)`;
         }, 50);
 
         spinIntervalsRef.current.push(interval);
       });
 
-      // Spin for 3 seconds
       await sleep(3000);
 
-      // Stop spinning with staggered delay
       for (let i = 0; i < reelsRef.current.length; i++) {
-        await sleep(400);
+        // await sleep(400);
 
         clearInterval(spinIntervalsRef.current[i]);
         reelsRef.current[i].current?.classList.remove("spinning");
+      }
 
-        // Snap to final symbol position
-        snapToSymbol(i);
+      const finalResult = predeterminedResult || determineSpinResult();
+
+      if (finalResult === "won") {
+        // for (let i = 0; i < 3; i++) {
+        snapToSymbol(0, 0); // All reels show burger
+        snapToSymbol(1, 5); // All reels show burger
+        snapToSymbol(2, 4); // All reels show burger
+        // }
+      } else if (finalResult === "halfoff") {
+        const randomNonBurger = Math.floor(Math.random() * 5) + 1; // Random image excluding burger
+        snapToSymbol(0, randomNonBurger); // First reel shows burger
+        snapToSymbol(1, 5); // Second reel shows burger
+
+        snapToSymbol(2, 4);
+      } else {
+        // All reels: random non-burger
+        const nonBurgerIndices0 = [1, 2, 3, 4, 5];
+        const nonBurgerIndices1 = [0, 1, 2, 3, 4];
+        const nonBurgerIndices2 = [0, 1, 2, 3, 5];
+        snapToSymbol(
+          0,
+          nonBurgerIndices0[
+            Math.floor(Math.random() * nonBurgerIndices0.length)
+          ]
+        );
+        snapToSymbol(
+          1,
+          nonBurgerIndices1[
+            Math.floor(Math.random() * nonBurgerIndices1.length)
+          ]
+        );
+        snapToSymbol(
+          2,
+          nonBurgerIndices2[
+            Math.floor(Math.random() * nonBurgerIndices2.length)
+          ]
+        );
       }
 
       setIsSpinning(false);
 
-      // Trigger result animation
-      triggerResultAnimation();
+      triggerResultAnimation(finalResult);
 
-      // Determine the result and notify parent after a short delay to let animations finish
       setTimeout(() => {
-        const result = determineSpinResult();
-        onSpinComplete?.(result);
-      }, 1200); // Wait for result animations to complete
+        onSpinComplete?.(finalResult);
+      }, 1200);
     };
 
     // Cleanup intervals on unmount

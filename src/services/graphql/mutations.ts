@@ -72,3 +72,14 @@ export const REDEEM_PROMO_CODE = gql`
     }
   }
 `;
+
+export const SPIN_SLOT_MACHINE = gql`
+  mutation SpinSlotMachine($user_id: ID!) {
+    spinSlotMachine(user_id: $user_id) {
+      result
+      success
+      message
+      promo_code
+    }
+  }
+`;

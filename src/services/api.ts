@@ -5,6 +5,7 @@ import {
   VERIFY_OTP,
   SAVE_GAME_RESULT,
   REDEEM_PROMO_CODE,
+  SPIN_SLOT_MACHINE,
 } from "./graphql/mutations";
 import {
   GET_USER,
@@ -25,6 +26,7 @@ import type {
   UserPromoCode,
   Stats,
   CheckPlayStatusResponse,
+  SpinSlotMachineResponse,
 } from "./graphql/types";
 import { GameResult } from "./graphql/types";
 
@@ -124,6 +126,16 @@ export class ApiService {
       fetchPolicy: "no-cache", // Always get fresh data
     });
     return data.checkPlayStatus;
+  }
+
+  static async spinSlotMachine(
+    userId: string
+  ): Promise<SpinSlotMachineResponse> {
+    const { data } = await apolloClient.mutate({
+      mutation: SPIN_SLOT_MACHINE,
+      variables: { user_id: userId },
+    });
+    return data.spinSlotMachine;
   }
 
   // Utility method to handle errors
