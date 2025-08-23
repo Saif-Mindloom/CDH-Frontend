@@ -428,7 +428,6 @@ const LandingPage: React.FC = () => {
           <PromptResult
             result={spinResult}
             code={currentPromoCode}
-            userId={currentUser?.id}
             onComplete={() => {
               setSpinCompleted(false);
               setSpinResult("lost");

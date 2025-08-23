@@ -45,33 +45,7 @@ export const VERIFY_OTP = gql`
   }
 `;
 
-// Game Mutations
-export const SAVE_GAME_RESULT = gql`
-  mutation SaveGameResult($input: GameResultInput!) {
-    saveGameResult(input: $input) {
-      success
-      message
-      game {
-        id
-        user_id
-        play_date
-        result
-        created_at
-      }
-      promo_code
-    }
-  }
-`;
-
-// Promo Code Mutations
-export const REDEEM_PROMO_CODE = gql`
-  mutation RedeemPromoCode($promo_code: String!, $user_id: ID!) {
-    redeemPromoCode(promo_code: $promo_code, user_id: $user_id) {
-      success
-      message
-    }
-  }
-`;
+// Promo Code Mutations - redeem functionality removed
 
 export const SPIN_SLOT_MACHINE = gql`
   mutation SpinSlotMachine($user_id: ID!) {

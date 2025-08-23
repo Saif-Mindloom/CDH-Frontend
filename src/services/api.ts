@@ -3,8 +3,6 @@ import {
   REGISTER_USER,
   SEND_OTP,
   VERIFY_OTP,
-  SAVE_GAME_RESULT,
-  REDEEM_PROMO_CODE,
   SPIN_SLOT_MACHINE,
 } from "./graphql/mutations";
 import {
@@ -17,18 +15,14 @@ import type {
   RegisterUserInput,
   SendOtpInput,
   VerifyOtpInput,
-  GameResultInput,
   User,
   OtpResponse,
   VerifyOtpResponse,
-  GameResultResponse,
-  PromoSendResponse,
   UserPromoCode,
   Stats,
   CheckPlayStatusResponse,
   SpinSlotMachineResponse,
 } from "./graphql/types";
-import { GameResult } from "./graphql/types";
 
 export class ApiService {
   // User Registration
@@ -66,32 +60,17 @@ export class ApiService {
   }
 
   // Game Operations
-  static async saveGameResult(
-    userId: string,
-    result: GameResult
-  ): Promise<GameResultResponse> {
-    const input: GameResultInput = {
-      user_id: userId,
-      result,
-    };
+  static async spinSlotMachine(
+    userId: string
+  ): Promise<SpinSlotMachineResponse> {
     const { data } = await apolloClient.mutate({
-      mutation: SAVE_GAME_RESULT,
-      variables: { input },
+      mutation: SPIN_SLOT_MACHINE,
+      variables: { user_id: userId },
     });
-    return data.saveGameResult;
+    return data.spinSlotMachine;
   }
 
-  // Promo Code Operations
-  static async redeemPromoCode(
-    promoCode: string,
-    userId: string
-  ): Promise<PromoSendResponse> {
-    const { data } = await apolloClient.mutate({
-      mutation: REDEEM_PROMO_CODE,
-      variables: { promo_code: promoCode, user_id: userId },
-    });
-    return data.redeemPromoCode;
-  }
+  // Promo Code Operations - redeem functionality removed
 
   // Query Operations
   static async getUser(id: string): Promise<User> {
@@ -128,25 +107,16 @@ export class ApiService {
     return data.checkPlayStatus;
   }
 
-  static async spinSlotMachine(
-    userId: string
-  ): Promise<SpinSlotMachineResponse> {
-    const { data } = await apolloClient.mutate({
-      mutation: SPIN_SLOT_MACHINE,
-      variables: { user_id: userId },
-    });
-    return data.spinSlotMachine;
-  }
-
   // Utility method to handle errors
-  static handleError(error: unknown): string {
-    if (error?.graphQLErrors?.length > 0) {
-      return error.graphQLErrors[0].message;
+  private static handleError(error: unknown): string {
+    const apolloError = error as any;
+    if (apolloError.graphQLErrors && apolloError.graphQLErrors.length > 0) {
+      return apolloError.graphQLErrors[0].message;
+    } else if (apolloError.networkError) {
+      return "Network error occurred";
+    } else {
+      return apolloError.message || "An unknown error occurred";
     }
-    if (error?.networkError) {
-      return "Network error. Please check your connection.";
-    }
-    return error?.message || "An unexpected error occurred.";
   }
 }
 

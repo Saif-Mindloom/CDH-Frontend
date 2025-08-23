@@ -18,12 +18,10 @@ export const GET_USER = gql`
         result
         created_at
       }
-      promoCodes {
+      userPromoCodes {
         id
         promo_code_id
         assigned_at
-        redeemed_at
-        is_redeemed
         promoCode {
           id
           code
@@ -41,8 +39,6 @@ export const GET_USER_PROMO_CODES = gql`
       user_id
       promo_code_id
       assigned_at
-      redeemed_at
-      is_redeemed
       user {
         id
         full_name
@@ -65,13 +61,8 @@ export const GET_STATS = gql`
       total_spins
       total_wins
       total_promo_codes_assigned
-      total_promo_codes_redeemed
-      redeemed_codes_details {
-        user_id
-        phone_number
-        promo_code
-        redeemed_at
-      }
+      total_win_codes_assigned
+      total_halfoff_codes_assigned
     }
   }
 `;

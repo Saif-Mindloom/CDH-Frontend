@@ -28,12 +28,6 @@ export interface VerifyOtpInput {
   otp_code: string;
 }
 
-export interface GameResultInput {
-  user_id: string;
-  result: GameResult;
-}
-
-// Response Types
 export interface User {
   id: string;
   full_name: string;
@@ -44,7 +38,7 @@ export interface User {
   created_at: string;
   updated_at: string;
   games?: Game[];
-  promoCodes?: UserPromoCode[];
+  userPromoCodes?: UserPromoCode[];
 }
 
 export interface Game {
@@ -60,6 +54,8 @@ export interface PromoCode {
   id: string;
   code: string;
   display_method: PromoSentVia;
+  discount_type: string;
+  promo_name?: string;
   created_at: string;
 }
 
@@ -68,8 +64,6 @@ export interface UserPromoCode {
   user_id: string;
   promo_code_id: string;
   assigned_at: string;
-  redeemed_at?: string;
-  is_redeemed: boolean;
   user?: User;
   promoCode?: PromoCode;
 }
@@ -87,33 +81,14 @@ export interface VerifyOtpResponse {
   token?: string;
 }
 
-export interface GameResultResponse {
-  success: boolean;
-  message: string;
-  game?: Game;
-  promo_code?: string;
-}
-
-export interface PromoSendResponse {
-  success: boolean;
-  message: string;
-}
-
 export interface Stats {
   total_users: number;
   total_logins: number;
   total_spins: number;
   total_wins: number;
   total_promo_codes_assigned: number;
-  total_promo_codes_redeemed: number;
-  redeemed_codes_details: RedeemedCodeDetail[];
-}
-
-export interface RedeemedCodeDetail {
-  user_id: string;
-  phone_number: string;
-  promo_code: string;
-  redeemed_at: string;
+  total_win_codes_assigned: number;
+  total_halfoff_codes_assigned: number;
 }
 
 export interface CheckPlayStatusResponse {
