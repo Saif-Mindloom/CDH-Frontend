@@ -242,13 +242,13 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
     return (
       <div className="slot-machine">
         <img
-          src="/SlotMachine.png"
+          src="/SlotMachine.webp"
           alt="Cafe Delhi Heights"
           className="slot-reels-background"
           // className="slot-logo"
         />
         <img
-          src="/SlotArrows.png"
+          src="/SlotArrows.webp"
           alt="Cafe Delhi Heights"
           // className="slot-logo"
           className="slot-reels-background-arrows"

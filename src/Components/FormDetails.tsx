@@ -215,7 +215,7 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
         }}
       >
         <img
-          src="/CDH_Logo.png"
+          src="/CDH_Logo.webp"
           alt="Cafe Delhi Heights"
           style={{
             width: "75px",
