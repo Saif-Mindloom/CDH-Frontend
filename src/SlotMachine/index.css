@@ -1,5 +1,7 @@
 /* Slot Machine CSS Animation Styles */
 .slot-machine {
+  min-width: 280px;
+  padding: 0 10px;
   margin-bottom: 30px;
   margin-top: 30px;
   position: relative;
@@ -9,13 +11,29 @@
   /* width: 100%; */
 }
 
+.slot-reels-background {
+  width: 110%;
+  height: 110%;
+  position: absolute;
+  top: -8.5px;
+  z-index: -10;
+}
+.slot-reels-background-arrows {
+  width: 92%;
+  position: absolute;
+  z-index: 1;
+}
+
 .slot-reels {
   display: flex;
   justify-content: center;
   /* margin-bottom: 30px; */
   /* border-radius: 15px; */
   width: 100%;
+  padding: 5px;
+  gap: 2px;
   box-sizing: border-box;
+
   /* position: relative; */
   /* padding: 15px; */
   /* background-color: "#b52354"; */
@@ -250,15 +268,29 @@
 /* TABLET STYLES (768px - 1023px) - 180px reels */
 @media (min-width: 768px) and (max-width: 1023px) {
   .slot-reels {
-    padding: 15px;
+    padding: 25px;
     gap: 10px;
+    margin-top: -10px;
+    /* margin-bottom: -10px; */
+  }
+  .slot-reels-background {
+    width: 110%;
+    height: 100%;
+    position: absolute;
+    top: -8.5px;
+    z-index: -10;
+  }
+  .slot-reels-background-arrows {
+    width: 92%;
+    position: absolute;
+    z-index: 1;
   }
 
   .reel-left {
     width: 180px;
     height: 180px;
     /* border-width: 8px 4px 8px 8px; */
-    border-radius: 90px 0px 0px 90px;
+    /* border-radius: 90px 0px 0px 90px; */
   }
 
   .reel {
@@ -270,8 +302,9 @@
   .reel-right {
     width: 180px;
     height: 180px;
+    /* padding: 5px; */
     /* border-width: 8px 8px 8px 4px; */
-    border-radius: 0px 90px 90px 0px;
+    /* border-radius: 0px 90px 90px 0px; */
   }
 
   .reel::before,
@@ -322,29 +355,46 @@
 /* DESKTOP STYLES (>= 1024px) - 240px reels */
 @media (min-width: 1024px) {
   .slot-reels {
-    padding: 12px;
+    padding: 32px;
     gap: 10px;
+    /* margin-top: 0px; */
+    /* margin-bottom: -0x; */
+  }
+  .slot-reels-background {
+    width: 110%;
+    height: 100%;
+    position: absolute;
+    top: -8.5px;
+    z-index: -10;
+  }
+  .slot-reels-background-arrows {
+    width: 92%;
+    position: absolute;
+    z-index: 1;
   }
 
   .reel-left {
     width: 240px;
     height: 240px;
     /* border-width: 10px 16px 10px 10px; */
-    border-radius: 120px 16px 16px 120px;
+    /* border-radius: 120px 16px 16px 120px; */
+    margin: 0 1px;
   }
 
   .reel {
     width: 240px;
     height: 240px;
     /* border-width: 10px 5px 10px 0px; */
-    border-radius: 16px 16px 16px 16px;
+    /* border-radius: 16px 16px 16px 16px; */
+    margin: 0 1px;
   }
 
   .reel-right {
     width: 240px;
     height: 240px;
     /* border-width: 10px 10px 10px 5px; */
-    border-radius: 16px 120px 120px 16px;
+    /* border-radius: 16px 120px 120px 16px; */
+    margin: 0 1px;
   }
 
   .reel::before,
@@ -393,7 +443,7 @@
 }
 
 /* Mobile-specific optimizations */
-@media (max-width: 480px) {
+/* @media (max-width: 480px) {
   .slot-machine {
     min-width: 280px;
     padding: 0 10px;
@@ -409,7 +459,7 @@
   .reel-right {
     margin: 0 1px;
   }
-}
+} */
 
 /* Prevent horizontal scroll on small screens */
 body {

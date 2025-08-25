@@ -2,7 +2,11 @@ import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 
 // Create HTTP link to the GraphQL server
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:4000/graphql",
+  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "/graphql", // Use proxy endpoint
+  headers: {
+    "Content-Type": "application/json",
+  },
+  credentials: "include", // Include cookies for CORS
 });
 
 // Create Apollo Client

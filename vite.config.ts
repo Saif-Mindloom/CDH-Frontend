@@ -9,15 +9,12 @@ export default defineConfig({
     allowedHosts: true,
     // port: 3090,
     // strictPort: false,
-    // proxy: {
-    //   '/api': {
-    //     target: 'http://localhost:3080',
-    //     changeOrigin: true,
-    //   },
-    //   '/oauth': {
-    //     target: 'http://localhost:3080',
-    //     changeOrigin: true,
-    //   },
-    // },
+    proxy: {
+      "/graphql": {
+        target: "https://cdh-be.mindloom.in",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
 });

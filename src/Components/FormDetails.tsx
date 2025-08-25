@@ -53,12 +53,116 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
       return dateStr;
     };
 
+    // Validate date of birth
+    const validateDOB = (
+      dobString: string
+    ): { isValid: boolean; message: string } => {
+      if (!dobString || dobString.length !== 10) {
+        return { isValid: false, message: "Please enter a complete date" };
+      }
+
+      const parts = dobString.split("/");
+      if (parts.length !== 3) {
+        return { isValid: false, message: "Invalid date format" };
+      }
+
+      const [day, month, year] = parts.map(Number);
+
+      // Check individual component ranges
+      if (day < 1 || day > 31) {
+        return { isValid: false, message: "Day must be between 1 and 31" };
+      }
+
+      if (month < 1 || month > 12) {
+        return { isValid: false, message: "Month must be between 1 and 12" };
+      }
+
+      if (year > new Date().getFullYear()) {
+        return { isValid: false, message: "Year cannot be in the future" };
+      }
+
+      if (year < 1900) {
+        return { isValid: false, message: "Please enter a valid year" };
+      }
+
+      // Create date object and validate (this catches invalid dates like 31st Feb)
+      const date = new Date(year, month - 1, day);
+      if (
+        date.getDate() !== day ||
+        date.getMonth() !== month - 1 ||
+        date.getFullYear() !== year
+      ) {
+        return { isValid: false, message: "Please enter a valid date" };
+      }
+
+      return { isValid: true, message: "" };
+    };
+
+    // Handle DOB input with proper deletion support
+    const handleDOBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      const currentValue = dateOfBirth;
+
+      // Handle deletion - if the new value is shorter, allow direct setting
+      if (inputValue.length < currentValue.length) {
+        // Remove slashes if they're at the end after deletion
+        const cleanValue = inputValue.replace(/\/+$/, "");
+        setDateOfBirth(cleanValue);
+        setError(""); // Clear error when user is typing/deleting
+        return;
+      }
+
+      // For additions, apply formatting
+      let value = inputValue.replace(/\D/g, ""); // Remove non-digits
+
+      // Limit to 8 digits (DDMMYYYY)
+      if (value.length > 8) {
+        value = value.substring(0, 8);
+      }
+
+      // Add slashes at appropriate positions
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + "/" + value.substring(2);
+      }
+      if (value.length >= 5) {
+        value = value.substring(0, 5) + "/" + value.substring(5, 9);
+      }
+
+      setDateOfBirth(value);
+
+      // Validate and show error if the date is complete but invalid
+      if (value.length === 10) {
+        const validation = validateDOB(value);
+        if (!validation.isValid) {
+          setError(validation.message);
+        } else {
+          setError("");
+        }
+      } else {
+        setError(""); // Clear error when date is incomplete
+      }
+    };
+
     // Check if form is ready to submit
+    const dobValidation = validateDOB(dateOfBirth);
     const isFormReady =
-      name.trim().length > 0 && dateOfBirth.trim().length === 10 && !loading;
+      name.trim().length > 0 && dobValidation.isValid && !loading;
 
     const handleSubmit = async () => {
-      if (!isFormReady || !phoneNumber) return;
+      if (!phoneNumber) return;
+
+      // Validate name
+      if (!name.trim()) {
+        setError("Please enter your name");
+        return;
+      }
+
+      // Validate DOB
+      const dobValidationResult = validateDOB(dateOfBirth);
+      if (!dobValidationResult.isValid) {
+        setError(dobValidationResult.message);
+        return;
+      }
 
       try {
         setLoading(true);
@@ -289,20 +393,7 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
               <input
                 type="text"
                 value={dateOfBirth}
-                onChange={(e) => {
-                  let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
-
-                  // Add slashes at appropriate positions
-                  if (value.length >= 2) {
-                    value = value.substring(0, 2) + "/" + value.substring(2);
-                  }
-                  if (value.length >= 5) {
-                    value = value.substring(0, 5) + "/" + value.substring(5, 9);
-                  }
-
-                  setDateOfBirth(value);
-                  setError("");
-                }}
+                onChange={handleDOBChange}
                 placeholder={Label2Placeholder}
                 maxLength={10}
                 disabled={loading}

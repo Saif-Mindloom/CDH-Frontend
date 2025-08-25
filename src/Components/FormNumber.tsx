@@ -64,6 +64,7 @@ export const FormNumber = forwardRef<FormNumberRef, ContentProps>(
         setError("");
 
         const response = await ApiService.sendOtp(phoneNumber);
+        console.log(response, "otp response");
 
         if (response.success) {
           setOtpSent(true);

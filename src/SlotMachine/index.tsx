@@ -244,25 +244,14 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
         <img
           src="src/assets/SlotMachine.png"
           alt="Cafe Delhi Heights"
+          className="slot-reels-background"
           // className="slot-logo"
-          style={{
-            width: "110%",
-            height: "110%",
-            position: "absolute",
-            top: "-8.5px",
-          }}
         />
         <img
           src="src/assets/SlotArrows.png"
           alt="Cafe Delhi Heights"
           // className="slot-logo"
-          style={{
-            width: "92%",
-            // height: "110%",
-            position: "absolute",
-            // top: "-8.5px",
-            zIndex: 1,
-          }}
+          className="slot-reels-background-arrows"
         />
         <div className="slot-reels">
           <div className="reel-left" ref={reel1Ref}>

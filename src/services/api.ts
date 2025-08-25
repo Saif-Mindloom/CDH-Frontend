@@ -108,16 +108,17 @@ export class ApiService {
   }
 
   // Utility method to handle errors
-  // private static handleError(error: unknown): string {
-  //   const apolloError = error as any;
-  //   if (apolloError.graphQLErrors && apolloError.graphQLErrors.length > 0) {
-  //     return apolloError.graphQLErrors[0].message;
-  //   } else if (apolloError.networkError) {
-  //     return "Network error occurred";
-  //   } else {
-  //     return apolloError.message || "An unknown error occurred";
-  //   }
-  // }
+  static handleError(error: unknown): string {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const apolloError = error as any;
+    if (apolloError.graphQLErrors && apolloError.graphQLErrors.length > 0) {
+      return apolloError.graphQLErrors[0].message;
+    } else if (apolloError.networkError) {
+      return "Network error occurred";
+    } else {
+      return apolloError.message || "An unknown error occurred";
+    }
+  }
 }
 
 export default ApiService;
