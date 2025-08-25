@@ -11,7 +11,6 @@ const LandingPage: React.FC = () => {
   const formRef = useRef<FormNumberRef>(null);
   const formDetailsRef = useRef<FormDetailsRef>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userToken, setUserToken] = useState<string | null>(null);
   const [currentPhoneNumber, setCurrentPhoneNumber] = useState<string>("");
   const [isLoggedin, setIsLoggedin] = useState(false);
   const [loginPopupVisible, setLoginPopupVisible] = useState(false);
@@ -23,10 +22,8 @@ const LandingPage: React.FC = () => {
       setCheckingPlayStatus(true);
       const playStatus = await ApiService.checkPlayStatus(userId);
       setCanPlay(playStatus.can_play);
-      setPlayMessage(playStatus.message);
     } catch (error) {
       console.error("Error checking play status:", error);
-      setPlayMessage("Unable to check play status. Please try again.");
     } finally {
       setCheckingPlayStatus(false);
     }
@@ -81,11 +78,9 @@ const LandingPage: React.FC = () => {
       } else {
         console.error("Spin failed:", spinResponse.message);
         // Show error message to user
-        setPlayMessage(spinResponse.message);
       }
     } catch (error) {
       console.error("Error spinning slot machine:", error);
-      setPlayMessage("Failed to spin. Please try again.");
     }
   };
 
@@ -95,7 +90,7 @@ const LandingPage: React.FC = () => {
 
   const handleFormSubmission = async (
     phone: string,
-    otp: string,
+    _otp: string,
     user?: User
   ) => {
     if (user) {
@@ -141,10 +136,9 @@ const LandingPage: React.FC = () => {
     string | undefined
   >();
   const [canPlay, setCanPlay] = useState(true);
-  const [playMessage, setPlayMessage] = useState("");
   const [checkingPlayStatus, setCheckingPlayStatus] = useState(false);
 
-  const handleSpinComplete = async (result: "won" | "lost" | "halfoff") => {
+  const handleSpinComplete = async () => {
     setSpinCompleted(true);
   };
 
