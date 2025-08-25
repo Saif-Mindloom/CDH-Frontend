@@ -98,7 +98,7 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
       }}
     >
       <img
-        src="src/assets/CDH_Logo.png"
+        src="/CDH_Logo.png"
         alt="Cafe Delhi Heights"
         style={{
           width: "75px",
@@ -192,7 +192,7 @@ export const PromptResult = ({ result, code, onComplete }: ContentProps) => {
               }}
             >
               <img
-                src="src/assets/FoodImages/CDH-Pizza.webp"
+                src="/FoodImages/CDH-Pizza.webp"
                 alt="Cafe Delhi Heights"
                 style={{
                   width: "100%",

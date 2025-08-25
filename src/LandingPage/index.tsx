@@ -161,7 +161,7 @@ const LandingPage: React.FC = () => {
       }}
     >
       <img
-        src="src/assets/BackgroundLines.png"
+        src="/BackgroundLines.png"
         alt="Cafe Delhi Heights"
         style={{
           width: "100vw",
@@ -193,7 +193,7 @@ const LandingPage: React.FC = () => {
         >
           {/* cdh logo */}
           <img
-            src="src/assets/CDH_Logo.png"
+            src="/CDH_Logo.png"
             alt="Cafe Delhi Heights"
             style={{ width: "78px", height: "78px" }}
           />

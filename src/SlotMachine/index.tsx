@@ -22,12 +22,12 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
   ({ onSpinComplete }, ref) => {
     // Define symbol images - you can replace these paths with your actual image paths
     const symbolImages = [
-      "src/assets/FoodImages/CDH-Burger.webp",
-      "src/assets/FoodImages/CDH-Pizza.webp",
-      "src/assets/FoodImages/CDH-Drink.webp",
-      "src/assets/FoodImages/CDH-Meal.webp",
-      "src/assets/FoodImages/CDH-pasta.webp",
-      "src/assets/FoodImages/CDH-pasta.webp",
+      "/FoodImages/CDH-Burger.webp",
+      "/FoodImages/CDH-Pizza.webp",
+      "/FoodImages/CDH-Drink.webp",
+      "/FoodImages/CDH-Meal.webp",
+      "/FoodImages/CDH-pasta.webp",
+      "/FoodImages/CDH-pasta.webp",
     ];
     const [isSpinning, setIsSpinning] = useState(false);
 
@@ -242,13 +242,13 @@ const SlotMachine = forwardRef<SlotMachineRef, SlotMachineProps>(
     return (
       <div className="slot-machine">
         <img
-          src="src/assets/SlotMachine.png"
+          src="/SlotMachine.png"
           alt="Cafe Delhi Heights"
           className="slot-reels-background"
           // className="slot-logo"
         />
         <img
-          src="src/assets/SlotArrows.png"
+          src="/SlotArrows.png"
           alt="Cafe Delhi Heights"
           // className="slot-logo"
           className="slot-reels-background-arrows"
