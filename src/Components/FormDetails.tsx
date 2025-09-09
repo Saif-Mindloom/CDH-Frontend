@@ -11,6 +11,7 @@ interface ContentProps {
   Label2Placeholder?: string;
   Label3?: string;
   Label3Placeholder?: string;
+  Label4?: string;
   buttonText?: string;
   onSubmit?: (user: User) => void;
   phoneNumber?: string;
@@ -19,6 +20,50 @@ interface ContentProps {
 export interface FormDetailsRef {
   submitForm: () => void;
 }
+
+// Store locations data
+const STORE_LOCATIONS = [
+  "Select Store Location",
+  "DLF Promenade - Vasant Kunj - Delhi",
+  "DLF Avenue Mall - DLF Saket - Delhi",
+  "Janpath - CP - Delhi",
+  "Pacific Mall Tagore Garden - Subhash Nagar - Delhi",
+  "Rcube Monad - Rajouri Garden - Delhi",
+  "Aerocity Worlmark-3 - IGI Airport - Delhi",
+  "Unity One Mall - Janakpuri - Delhi",
+  "Vegas Mall - Dwarka - Delhi",
+  "Khan Market - Khan Market - Delhi",
+  "Pacific Mall NSP - NSP - Delhi",
+  "Karol Bagh Amaryllis - Karol Bagh - Delhi",
+  "Pacific Mall Jasola - Jasola - Delhi",
+  "Pawa Grand - Rohini - Delhi",
+  "Cross Point Gurgaon - DLF Phase 4 sec 28 - Gurugram",
+  "Ambience Mall Gurgaon - NH-8 - Gurugram",
+  "Cyber Hub Gurgaon - Cyber City - Gurugram",
+  "Good Earth City Centre Gurgaon - Sector 50 - Gurugram",
+  "DLF Cyber Park Gurgaon - Udhyog Vihar - Gurugram",
+  "Ardee Mall Gurgaon - Sector 52 - Gurugram",
+  "AIPL Joystreet - Sector 66 - Gurugram",
+  "WorldMark-65 - Sector 65 - Gurugram",
+  "M3M - Sector 65 - Gurugram",
+  "Mall Of India Noida - Sector 18 - Noida",
+  "Starling Mall Noida - Sector 104 - Noida",
+  "Pebble Down Town Faridabad - Sector 12 - Faridabad",
+  "Mall Of Faridabad - Faridabad",
+  "MBD Mall - Ludhiana",
+  "Paragon Water Front - Ludhiana",
+  "Nexus Elante Mall - Chandigarh",
+  "Raj Kamal Square - Patiala",
+  "Ranjeet Avenue - Amritsar",
+  "Riverside Mall - Lucknow",
+  "Lullu Mall - Lucknow",
+  "Phoenix Market City - Kurla Mumbai",
+  "Inorbit Mall - Malad Mumbai",
+  "Pacific Mall - Dehradun",
+  "Inorbit Mall - Hyderabad",
+  "Silver Square Mall - Srinagar",
+  "Zora Mall - Raipur",
+];
 
 export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
   (
@@ -31,6 +76,7 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
       Label2Placeholder = "DD/MM/YYYY",
       Label3 = "Email (Optional)",
       Label3Placeholder = "john@example.com",
+      Label4 = "Choose the Outlet",
       buttonText = "Proceed",
       onSubmit,
       phoneNumber,
@@ -40,6 +86,9 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
     const [name, setName] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
     const [email, setEmail] = useState("");
+    const [storeLocation, setStoreLocation] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -146,7 +195,11 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
     // Check if form is ready to submit
     const dobValidation = validateDOB(dateOfBirth);
     const isFormReady =
-      name.trim().length > 0 && dobValidation.isValid && !loading;
+      name.trim().length > 0 &&
+      dobValidation.isValid &&
+      storeLocation !== "" &&
+      storeLocation !== "Select Store Location" &&
+      !loading;
 
     const handleSubmit = async () => {
       if (!phoneNumber) return;
@@ -164,6 +217,12 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
         return;
       }
 
+      // Validate store location
+      if (!storeLocation || storeLocation === "Select Store Location") {
+        setError("Please select a store location");
+        return;
+      }
+
       try {
         setLoading(true);
         setError("");
@@ -175,15 +234,55 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
           phone_number: phoneNumber,
           dob: formattedDate,
           email: email.trim() || undefined,
+          // Note: store_location would need to be added to the backend schema
+          // For now, we'll include it in a comment
+          main_outlet: storeLocation,
         };
 
         const user = await ApiService.registerUser(userInput);
+        // TODO: Handle store location separately if needed
+        console.log("Selected store location:", storeLocation);
         onSubmit?.(user);
       } catch (err) {
         setError(ApiService.handleError(err));
       } finally {
         setLoading(false);
       }
+    };
+
+    // Filter store locations based on search term
+    const filteredLocations = STORE_LOCATIONS.filter((location, index) => {
+      if (index === 0) return true; // Always show the placeholder
+      return location.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    // Handle store location selection
+    const handleLocationSelect = (location: string) => {
+      if (location !== "Select Store Location") {
+        setStoreLocation(location);
+        setSearchTerm(location);
+        setIsDropdownOpen(false);
+        setError("");
+      }
+    };
+
+    // Handle input change for search
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchTerm(value);
+      setIsDropdownOpen(true);
+
+      // If the search term exactly matches a location, select it
+      const exactMatch = STORE_LOCATIONS.find(
+        (location) => location.toLowerCase() === value.toLowerCase()
+      );
+      if (exactMatch && exactMatch !== "Select Store Location") {
+        setStoreLocation(exactMatch);
+      } else if (value === "") {
+        setStoreLocation("");
+      }
+
+      setError("");
     };
 
     // Expose form methods and data to parent via ref
@@ -468,6 +567,152 @@ export const FormDetails = forwardRef<FormDetailsRef, ContentProps>(
                   backgroundColor: "#fff",
                 }}
               />
+            </div>
+          </div>
+
+          {/* Store Location Dropdown */}
+          <div
+            style={{
+              alignSelf: "stretch",
+              display: "flex",
+              flexDirection: "column",
+              // alignItems: "flex-start",
+              justifyContent: "flex-start",
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <div
+                style={{
+                  lineHeight: window.innerWidth <= 768 ? "20px" : "24px",
+                  fontWeight: 600,
+                  fontSize: window.innerWidth <= 768 ? "12px" : "16px",
+                }}
+              >
+                {Label4}
+              </div>
+            </div>
+            <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  alignSelf: "stretch",
+                  borderRadius: window.innerWidth <= 768 ? 6 : 8,
+                  backgroundColor: "#fff",
+                  border: "1px solid #e4e4e7",
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: window.innerWidth <= 768 ? 16 : 20,
+                  color: "#71717a",
+                  // width: "100%",
+                }}
+              >
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  onFocus={() => setIsDropdownOpen(true)}
+                  onBlur={() => {
+                    // Delay closing to allow for option clicks
+                    setTimeout(() => setIsDropdownOpen(false), 150);
+                  }}
+                  placeholder={storeLocation || "Search and select outlet..."}
+                  disabled={loading}
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    flex: 1,
+                    fontSize: window.innerWidth <= 768 ? 12 : 16,
+                    color: "#09090b",
+                    backgroundColor: "#fff",
+                  }}
+                />
+                <div
+                  style={{
+                    marginLeft: "8px",
+                    color: "#71717a",
+                    fontSize: window.innerWidth <= 768 ? 12 : 16,
+                    cursor: "pointer",
+                    transform: isDropdownOpen
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  ▼
+                </div>
+              </div>
+
+              {isDropdownOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    backgroundColor: "#fff",
+                    border: "1px solid #e4e4e7",
+                    borderRadius: window.innerWidth <= 768 ? 6 : 8,
+                    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    zIndex: 10,
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    marginTop: "2px",
+                    width: "100%",
+                  }}
+                >
+                  {filteredLocations.length > 1 ? (
+                    filteredLocations.slice(1).map((location, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleLocationSelect(location)}
+                        style={{
+                          padding:
+                            window.innerWidth <= 768
+                              ? "12px 16px"
+                              : "16px 20px",
+                          cursor: "pointer",
+                          fontSize: window.innerWidth <= 768 ? 12 : 14,
+                          color: "#09090b",
+                          borderBottom:
+                            index < filteredLocations.length - 2
+                              ? "1px solid #f4f4f5"
+                              : "none",
+                          backgroundColor: "transparent",
+                          transition: "background-color 0.1s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f9f9f9";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                      >
+                        {location}
+                      </div>
+                    ))
+                  ) : (
+                    <div
+                      style={{
+                        padding:
+                          window.innerWidth <= 768 ? "12px 16px" : "16px 20px",
+                        fontSize: window.innerWidth <= 768 ? 12 : 14,
+                        color: "#71717a",
+                        textAlign: "center",
+                      }}
+                    >
+                      No outlets found
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

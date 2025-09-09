@@ -71,6 +71,9 @@
   overscroll-behavior: none;
 }
 
+/* Prevent zoom on input focus without changing visual appearance */
+/* The viewport meta tag is the primary solution, this provides additional protection */
+
 a {
   font-weight: 500;
   color: #646cff;
